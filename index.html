@@ -1,0 +1,1286 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PeetX - Crypto Investment & Yield Engine</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="icon-512x512.png">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #0b0713;
+            --card-bg: #141021;
+            --input-bg: #1e1830;
+            --accent-purple: #9d4edf;
+            --accent-gold: #ffd700;
+            --text-main: #ffffff;
+            --text-sub: #b1a7c4;
+            --border-color: rgba(255, 215, 0, 0.12);
+            --danger-color: #ff4d4d;
+            --success-color: #00ffcc;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            padding: 0;
+            margin: 0;
+            width: 100%;
+            overflow-x: hidden;
+        }
+        .trada-app {
+            width: 100%;
+            max-width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 0;
+            padding: 16px 12px;
+            border: none;
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: none;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+        }
+        .hero-circle-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 16px 0 20px 0;
+            width: 100%;
+        }
+        .hero-outer-circle {
+            width: 240px;
+            height: 240px;
+            border-radius: 50%;
+            border: 8px solid var(--accent-purple);
+            background: #000000;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            box-shadow: 0 0 25px rgba(157, 78, 223, 0.25);
+        }
+        #matrixCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.5;
+            z-index: 1;
+        }
+        .hero-center-pill {
+            position: relative;
+            z-index: 2;
+            background: rgba(20, 16, 33, 0.95);
+            border: 1px solid var(--accent-purple);
+            border-radius: 30px;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.8);
+        }
+        .hero-token-symbol {
+            color: var(--accent-gold);
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .usdt-inline-icon {
+            width: 20px;
+            height: 20px;
+            object-fit: contain;
+            vertical-align: middle;
+        }
+        .hero-balance-val {
+            color: var(--success-color);
+            font-weight: bold;
+            font-size: 16px;
+            font-family: monospace;
+        }
+        .input-container {
+            position: relative;
+            margin-bottom: 6px;
+        }
+        .input-container input {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-main);
+            font-size: 16px;
+            outline: none;
+            text-align: center;
+        }
+        .input-container input::placeholder {
+            text-align: center;
+            opacity: 0.7;
+        }
+        .min-badge-transparent {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: var(--text-sub);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .percentage-buttons-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin-top: 8px;
+            margin-bottom: 6px;
+        }
+        .btn-pct {
+            background: rgba(255, 215, 0, 0.1);
+            color: var(--accent-gold);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            padding: 8px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+        .btn-pct:hover {
+            background: rgba(255, 215, 0, 0.2);
+            border-color: var(--accent-gold);
+        }
+        .section-label {
+            font-size: 13px;
+            color: var(--text-sub);
+            margin-bottom: 10px;
+            margin-top: 10px;
+        }
+        .plans-inline-text {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 16px;
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 8px 6px;
+        }
+        .plan-item-inline {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            cursor: pointer;
+            text-align: center;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding: 6px 2px;
+            border-radius: 8px;
+        }
+        .plan-item-inline.active {
+            background: rgba(255, 215, 0, 0.15);
+            color: var(--accent-gold);
+            font-weight: bold;
+        }
+        .plan-rate {
+            font-size: 10px;
+            opacity: 0.85;
+        }
+        .profit-summary {
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-size: 13px;
+        }
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+        }
+        .summary-item.total {
+            border-top: 1px solid var(--border-color);
+            padding-top: 8px;
+            font-weight: bold;
+            color: var(--accent-gold);
+            font-size: 14px;
+        }
+        .btn-main {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(90deg, var(--accent-purple), var(--accent-gold));
+            border: none;
+            border-radius: 25px;
+            color: #0b0713;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+        }
+        .btn-main:hover {
+            opacity: 0.9;
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.5);
+        }
+        .register-banner-card {
+            background: linear-gradient(135deg, rgba(157, 78, 223, 0.15), rgba(255, 215, 0, 0.1));
+            border: 1px solid var(--accent-gold);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 16px;
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .register-banner-card h4 {
+            color: var(--accent-gold);
+            font-size: 14px;
+            text-align: center;
+        }
+        .user-status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 255, 204, 0.06);
+            border: 1px solid rgba(0, 255, 204, 0.25);
+            border-radius: 10px;
+            padding: 8px 12px;
+            margin-bottom: 12px;
+            font-size: 12px;
+        }
+        .orders-header-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-bottom: 14px;
+        }
+        .orders-title {
+            color: var(--accent-gold);
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .orders-tabs {
+            display: flex;
+            gap: 6px;
+        }
+        .tab-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-sub);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .tab-btn.active {
+            background: rgba(255, 215, 0, 0.15);
+            border-color: var(--accent-gold);
+            color: var(--accent-gold);
+        }
+        .btn-refresh {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--accent-purple);
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .order-plain-entry {
+            padding: 10px 0 16px 0;
+            border-bottom: 1px dashed rgba(255, 215, 0, 0.25);
+            margin-bottom: 12px;
+            width: 100%;
+        }
+        .order-plain-entry:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 4px;
+        }
+        .order-plain-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+        .order-plain-label {
+            color: var(--text-sub);
+        }
+        .order-plain-value {
+            color: var(--text-main);
+            font-weight: bold;
+        }
+        .timer-display-plain {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--success-color);
+            letter-spacing: 0.5px;
+            direction: ltr;
+        }
+        .progress-container-wrapper {
+            margin: 8px 0 12px 0;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 8px 10px;
+        }
+        .progress-info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            margin-bottom: 5px;
+            color: var(--text-sub);
+        }
+        .progress-bar-track {
+            width: 100%;
+            height: 8px;
+            background: var(--input-bg);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid rgba(255, 215, 0, 0.15);
+        }
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--accent-gold), var(--success-color));
+            border-radius: 4px;
+            box-shadow: 0 0 10px rgba(0, 255, 204, 0.6);
+            transition: width 0.5s ease;
+        }
+        .btn-claim-dynamic {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            margin-top: 10px;
+        }
+        .btn-claim-dynamic.disabled-claim {
+            background: rgba(0, 255, 204, 0.05);
+            border: 1px solid rgba(0, 255, 204, 0.15);
+            color: var(--success-color);
+            opacity: 0.45;
+            pointer-events: none;
+        }
+        .btn-claim-dynamic.active-claim {
+            background: var(--success-color);
+            border: 1px solid var(--success-color);
+            color: #0b0713;
+            opacity: 1;
+            pointer-events: auto;
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.4);
+        }
+        .no-orders-box {
+            text-align: center;
+            padding: 24px 12px;
+            color: var(--text-sub);
+            font-size: 13px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px dashed rgba(255, 215, 0, 0.15);
+            border-radius: 10px;
+            margin-top: 6px;
+        }
+        .generation-rewards-card {
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .platform-banner {
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 12px;
+            border: 1px solid var(--border-color);
+            background: transparent;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 10px;
+            position: relative;
+            min-height: 80px;
+        }
+        .platform-banner h4 {
+            color: var(--accent-gold);
+            font-size: 15px;
+            margin-bottom: 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+        .platform-banner h4 img {
+            width: 48px;
+            height: 48px;
+            object-fit: contain;
+            border-radius: 50%;
+            border: 1px solid var(--accent-gold);
+        }
+        .ads-dashboard-card {
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .ads-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            text-align: center;
+        }
+        .ads-stat-box {
+            background: rgba(0,0,0,0.25);
+            padding: 10px 6px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .ads-stat-title {
+            font-size: 10px;
+            color: var(--text-sub);
+            margin-bottom: 4px;
+        }
+        .ads-stat-val {
+            font-size: 13px;
+            font-weight: bold;
+            color: var(--accent-gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+        .btn-watch-ads {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(90deg, #00ffcc, var(--accent-purple));
+            border: none;
+            border-radius: 10px;
+            color: #0b0713;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .btn-withdraw-ads {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255, 215, 0, 0.15);
+            border: 1px solid var(--accent-gold);
+            border-radius: 10px;
+            color: var(--accent-gold);
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            padding: 16px;
+        }
+        .custom-alert-box {
+            background: var(--card-bg);
+            border: 1px solid var(--accent-gold);
+            border-radius: 16px;
+            padding: 20px;
+            max-width: 360px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+        }
+        .custom-alert-box h4 { color: var(--accent-gold); margin-bottom: 10px; font-size: 16px; }
+        .custom-alert-box p { font-size: 13px; color: var(--text-main); line-height: 1.5; margin-bottom: 18px; }
+        .btn-alert-close {
+            width: 100%;
+            padding: 10px;
+            background: var(--accent-gold);
+            color: #0b0713;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<div class="trada-app">
+    <div class="card">
+        <div class="hero-circle-container">
+            <div class="hero-outer-circle">
+                <canvas id="matrixCanvas"></canvas>
+                <div class="hero-center-pill">
+                    <span class="hero-token-symbol" translate="no">USDT</span>
+                    <span class="hero-balance-val" id="userUsdtBalance">--</span>
+                    <img src="usdt.png" alt="USDT" class="usdt-inline-icon">
+                </div>
+            </div>
+        </div>
+
+        <!-- شريط حالة الحساب المسجل -->
+        <div class="user-status-bar" id="registeredUserBar" style="display: none;">
+            <span style="color: var(--text-sub);">Username: <b id="displayUsername" style="color: var(--success-color);">--</b></span>
+            <span style="color: var(--text-sub);">Rank: <b id="displayUserRank" style="color: var(--accent-gold);">0</b></span>
+        </div>
+
+        <!-- صندوق التسجيل الإجباري قبل الإيداع -->
+        <div class="register-banner-card" id="registerSectionCard">
+            <h4>📝 Account Registration Required Before Deposit</h4>
+            <div class="input-container">
+                <input type="text" id="regUsernameInput" placeholder="Choose your Username (e.g. ali2026)">
+            </div>
+            <div class="input-container">
+                <input type="text" id="regReferrerInput" placeholder="Referrer Username (Required)">
+            </div>
+            <button class="btn-main" onclick="executeUserRegistration()">Register Account Now</button>
+        </div>
+
+        <div class="input-container">
+            <input type="number" id="investInput" placeholder="Enter amount..." oninput="handleInputChange()">
+            <div class="min-badge-transparent" id="minBadge">Min 1 USD</div>
+        </div>
+        <div class="percentage-buttons-grid">
+            <button class="btn-pct" onclick="applyPercentage(25)">25%</button>
+            <button class="btn-pct" onclick="applyPercentage(50)">50%</button>
+            <button class="btn-pct" onclick="applyPercentage(75)">75%</button>
+            <button class="btn-pct" onclick="applyMaxBalance()">MAX</button>
+        </div>
+        <div id="errorTextMsg" style="color: var(--danger-color); font-size: 11px; margin-top: 4px; margin-bottom: 6px; display: none; text-align: center;"></div>
+
+        <div class="section-label">Choose investment cycle</div>
+        <div class="plans-inline-text">
+            <div class="plan-item-inline active" onclick="setPlan(7, 7, 1, this)">
+                <span>7 Days</span>
+                <span class="plan-rate" id="planRate1">7%</span>
+            </div>
+            <div class="plan-item-inline" onclick="setPlan(15, 15, 2, this)">
+                <span>15 Days</span>
+                <span class="plan-rate" id="planRate2">15%</span>
+            </div>
+            <div class="plan-item-inline" onclick="setPlan(30, 30, 3, this)">
+                <span>30 Days</span>
+                <span class="plan-rate" id="planRate3">30%</span>
+            </div>
+            <div class="plan-item-inline" onclick="setPlan(60, 60, 4, this)">
+                <span>60 Days</span>
+                <span class="plan-rate" id="planRate4">60%</span>
+            </div>
+        </div>
+
+        <div class="profit-summary">
+            <div class="summary-item">
+                <span>Profit Rate:</span>
+                <span id="displayRate">7%</span>
+            </div>
+            <div class="summary-item">
+                <span>Expected Profit:</span>
+                <span id="displayProfit">0.0000 <span translate="no">USDT</span></span>
+            </div>
+            <div class="summary-item total">
+                <span>Total Return (with Capital):</span>
+                <span id="displayTotal">0.0000 <span translate="no">USDT</span></span>
+            </div>
+        </div>
+
+        <button class="btn-main" id="mainActionButton" onclick="handleInvestButtonClick()">Invest</button>
+    </div>
+
+    <!-- قسم رصيد الأجيال ومطالبة الأرباح -->
+    <div class="card">
+        <div class="orders-title" style="margin-bottom: 10px;">👥 Generation & Network Rewards</div>
+        <div class="generation-rewards-card">
+            <div class="order-plain-row">
+                <span class="order-plain-label">Network & Generation Balance:</span>
+                <span class="order-plain-value" id="networkRewardAvailableVal" style="color: var(--accent-gold);">0.0000 USDT</span>
+            </div>
+            <div class="order-plain-row">
+                <span class="order-plain-label">Total Available to Claim:</span>
+                <span class="order-plain-value" id="totalAvailableVal" style="color: var(--success-color);">0.0000 USDT</span>
+            </div>
+            <div class="input-container" style="margin-top: 4px;">
+                <input type="number" id="generationClaimInput" placeholder="Enter amount to claim (USDT)..." />
+            </div>
+            <button class="btn-main" onclick="handleClaimGenerationRewards()" style="margin-top: 4px; background: var(--success-color); color: #0b0713;">
+                Claim Rewards
+            </button>
+        </div>
+    </div>
+
+    <!-- قسم العقود النشطة والسابقة -->
+    <div class="card">
+        <div class="orders-header-wrapper">
+            <div class="orders-title" id="ordersSectionTitle">Current Active Contracts</div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <div class="orders-tabs">
+                    <button class="tab-btn active" id="tabActiveBtn" onclick="switchOrdersTab('active')">Active</button>
+                    <button class="tab-btn" id="tabPreviousBtn" onclick="switchOrdersTab('previous')">Previous Investments</button>
+                </div>
+                <button class="btn-refresh" onclick="refreshContractData()" id="refreshBtn">
+                    <span>🔄 Refresh</span>
+                </button>
+            </div>
+        </div>
+        <div id="activeOrdersContainer" style="display: block;">
+            <div class="no-orders-box" id="noActiveOrdersMsg">No active orders found</div>
+        </div>
+        <div id="previousInvestmentsContainer" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255, 215, 0, 0.03); padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border-color); margin-bottom: 10px;">
+                <span style="color: var(--text-sub); font-size: 13px;">💲 Total Deposited</span>
+                <span class="balance-value" id="userInvestmentSize">0.00 <span translate="no">USDT</span></span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0, 255, 204, 0.03); padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border-color);">
+                <span style="color: var(--text-sub); font-size: 13px;">💸 Total Withdrawn</span>
+                <span class="balance-value" id="userTotalWithdrawn" style="color: var(--success-color);">0.00 <span translate="no">USDT</span></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- قسم الإعلانات (بدون الشرح السفلي كما طلبت) -->
+    <div class="card">
+        <div class="platform-banner" id="platformBannerBox">
+            <h4>
+                <img src="555gh.png" alt="Logo">
+                Ads & Link Skips Hub
+            </h4>
+            <div style="font-size: 11px; color: var(--accent-gold); font-weight: bold; margin-bottom: 4px;">Coming Soon</div>
+        </div>
+        <div class="ads-dashboard-card">
+            <div class="ads-stats-grid">
+                <div class="ads-stat-box">
+                    <div class="ads-stat-title">My Views</div>
+                    <div class="ads-stat-val">0</div>
+                </div>
+                <div class="ads-stat-box">
+                    <div class="ads-stat-title">Watch Times</div>
+                    <div class="ads-stat-val">0</div>
+                </div>
+                <div class="ads-stat-box">
+                    <div class="ads-stat-title">Ad Earnings</div>
+                    <div class="ads-stat-val">
+                        0.00 <span translate="no">USDT</span>
+                    </div>
+                </div>
+            </div>
+            <button class="btn-watch-ads" onclick="handleAdsComingSoon(this)">📺 Watch Ad & Earn (Earn $0.08 per video view)</button>
+            <button class="btn-withdraw-ads" onclick="handleAdsComingSoon(this)" style="margin-top: 6px;">Withdraw Earnings</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="customAlertModal">
+    <div class="custom-alert-box">
+        <h4 id="customAlertTitle">Alert</h4>
+        <p id="customAlertMessage"></p>
+        <button class="btn-alert-close" onclick="closeCustomAlert()">OK</button>
+    </div>
+</div>
+
+<script>
+    const USDT_CONTRACT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955";
+    const CONTRACT_ADDRESS = "0xc90E5785632dAaB9Cb61F5050dA393090541A76D";
+
+    const CONTRACT_ABI = [
+        {"inputs":[{"internalType":"uint256","name":"_lpPositionId","type":"uint256"}],"stateMutability":"nonpayable","type":"constructor"},
+        {"inputs":[],"name":"AlreadyRegistered","type":"error"},
+        {"inputs":[],"name":"BelowMinimum","type":"error"},
+        {"inputs":[],"name":"CannotSelfRefer","type":"error"},
+        {"inputs":[],"name":"InsufficientBalance","type":"error"},
+        {"inputs":[],"name":"InvalidPlan","type":"error"},
+        {"inputs":[],"name":"InvalidUsername","type":"error"},
+        {"inputs":[],"name":"MaxPositions","type":"error"},
+        {"inputs":[],"name":"MustRegisterFirst","type":"error"},
+        {"inputs":[],"name":"NoRewards","type":"error"},
+        {"inputs":[],"name":"NotLaunched","type":"error"},
+        {"inputs":[],"name":"NotOwner","type":"error"},
+        {"inputs":[],"name":"NotRegistered","type":"error"},
+        {"inputs":[],"name":"ReentrancyGuardReentrantCall","type":"error"},
+        {"inputs":[],"name":"ReferrerNotFound","type":"error"},
+        {"inputs":[],"name":"ReferrerNotQualified","type":"error"},
+        {"inputs":[{"internalType":"address","name":"token","type":"address"}],"name":"SafeERC20FailedOperation","type":"error"},
+        {"inputs":[],"name":"UsernameTaken","type":"error"},
+        {"inputs":[{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"claimRewards","outputs":[],"stateMutability":"nonpayable","type":"function"},
+        {"inputs":[{"internalType":"uint256","name":"amount","type":"uint256"},{"internalType":"uint8","name":"planId","type":"uint8"}],"name":"compoundRewards","outputs":[],"stateMutability":"nonpayable","type":"function"},
+        {"inputs":[{"internalType":"uint256","name":"amount","type":"uint256"},{"internalType":"uint8","name":"planId","type":"uint8"}],"name":"deposit","outputs":[],"stateMutability":"nonpayable","type":"function"},
+        {"inputs":[{"internalType":"address","name":"userAddr","type":"address"}],"name":"getAvailableRewards","outputs":[{"internalType":"uint256","name":"totalAvailable","type":"uint256"},{"internalType":"uint256","name":"dailyROIAvailable","type":"uint256"},{"internalType":"uint256","name":"dailyReserve","type":"uint256"},{"internalType":"uint256","name":"networkAvailable","type":"uint256"},{"internalType":"uint256","name":"totalReferral","type":"uint256"},{"internalType":"uint256","name":"totalLeadership","type":"uint256"}],"stateMutability":"view","type":"function"},
+        {"inputs":[{"internalType":"address","name":"userAddr","type":"address"}],"name":"getDepositCount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+        {"inputs":[{"internalType":"address","name":"userAddr","type":"address"},{"internalType":"uint256","name":"index","type":"uint256"}],"name":"getDepositInfo","outputs":[{"internalType":"uint256","name":"amount","type":"uint256"},{"internalType":"uint256","name":"startTime","type":"uint256"},{"internalType":"uint256","name":"endTime","type":"uint256"},{"internalType":"uint8","name":"planId","type":"uint8"},{"internalType":"bool","name":"claimed","type":"bool"},{"internalType":"bool","name":"isMatured","type":"bool"},{"internalType":"uint256","name":"expectedROI","type":"uint256"},{"internalType":"uint256","name":"generatedROI","type":"uint256"}],"stateMutability":"view","type":"function"},
+        {"inputs":[{"internalType":"uint8","name":"planId","type":"uint8"}],"name":"getPlanInfo","outputs":[{"internalType":"uint256","name":"duration","type":"uint256"},{"internalType":"uint256","name":"totalROI","type":"uint256"}],"stateMutability":"view","type":"function"},
+        {"inputs":[{"internalType":"address","name":"userAddr","type":"address"}],"name":"getUserInfo","outputs":[{"internalType":"string","name":"username","type":"string"},{"internalType":"address","name":"referrer","type":"address"},{"internalType":"bool","name":"registered","type":"bool"},{"internalType":"uint256","name":"_totalActiveDeposit","type":"uint256"},{"internalType":"uint256","name":"_totalDeposited","type":"uint256"},{"internalType":"uint256","name":"_totalWithdrawn","type":"uint256"},{"internalType":"uint256","name":"_totalCompounded","type":"uint256"}],"stateMutability":"view","type":"function"},
+        {"inputs":[{"internalType":"address","name":"userAddr","type":"address"}],"name":"getUserInfoExtra","outputs":[{"internalType":"uint256","name":"realActiveDeposit","type":"uint256"},{"internalType":"uint256","name":"activeDepositsCount","type":"uint256"},{"internalType":"uint8","name":"rank","type":"uint8"}],"stateMutability":"view","type":"function"},
+        {"inputs":[{"internalType":"string","name":"username","type":"string"},{"internalType":"string","name":"referrerUsername","type":"string"}],"name":"register","outputs":[],"stateMutability":"nonpayable","type":"function"},
+        {"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"usersExtra","outputs":[{"internalType":"uint256","name":"networkRewardAvailable","type":"uint256"},{"internalType":"uint256","name":"dailyRewardReserve","type":"uint256"},{"internalType":"uint256","name":"totalReferralReward","type":"uint256"},{"internalType":"uint256","name":"totalROIEarned","type":"uint256"},{"internalType":"uint256","name":"totalLeadershipReward","type":"uint256"},{"internalType":"uint32","name":"teamCount","type":"uint32"},{"internalType":"uint32","name":"directsCount","type":"uint32"},{"internalType":"uint32","name":"qualifiedDirects","type":"uint32"},{"internalType":"uint8","name":"currentRank","type":"uint8"},{"internalType":"uint256","name":"lastCalculationTime","type":"uint256"}],"stateMutability":"view","type":"function"}
+    ];
+
+    let currentDays = 7;
+    let currentProfitRate = 7;
+    let currentPlanId = 1; // قد يبدأ من 0 أو 1 حسب العقد، يتم تحديثه تلقائياً من getPlanInfo
+    let planRatesMap = { 1: 7, 2: 15, 3: 30, 4: 60 };
+    let userWalletAddress = null;
+    let isUserRegistered = false;
+    let rawNumericValue = 0;
+    let activeOrders = [];
+    let liveProvider = null;
+    let userUsdtBalanceValue = 0;
+    let totalAvailableRewardsNum = 0;
+    let activeTimers = {};
+
+    const canvas = document.getElementById('matrixCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = 224;
+    canvas.height = 224;
+    const characters = '01PEETX9876543210USDT';
+    const fontSize = 10;
+    const columns = canvas.width / fontSize;
+
+    function drawStaticMatrix() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#00ff66';
+        ctx.font = fontSize + 'px monospace';
+        for (let i = 0; i < columns; i++) {
+            for (let j = 0; j < canvas.height / fontSize; j++) {
+                if (Math.random() > 0.6) {
+                    const text = characters.charAt(Math.floor(Math.random() * characters.length));
+                    ctx.fillText(text, i * fontSize, j * fontSize);
+                }
+            }
+        }
+    }
+
+    function handleAdsComingSoon(btn) {
+        if (!btn._originalText) btn._originalText = btn.innerText;
+        btn.innerText = "Coming Soon";
+        btn.style.opacity = "0.7";
+        setTimeout(() => {
+            btn.innerText = btn._originalText;
+            btn.style.opacity = "1";
+        }, 3000);
+    }
+
+    function getReferrerUsernameFromUrl() {
+        try {
+            const urlParams = new URLSearchParams(window.location.search);
+            const ref = urlParams.get('ref') || urlParams.get('referrer') || urlParams.get('upline');
+            if (ref) {
+                localStorage.setItem('peetx_ref_username', ref);
+                return ref;
+            }
+            return localStorage.getItem('peetx_ref_username') || "";
+        } catch (e) {
+            return "";
+        }
+    }
+
+    function getEthereumProvider() {
+        if (typeof window.ethereum !== 'undefined') return window.ethereum;
+        try {
+            if (window.parent && typeof window.parent.ethereum !== 'undefined') return window.parent.ethereum;
+        } catch (e) {}
+        return null;
+    }
+
+    async function forceConnectWallet() {
+        const providerObj = getEthereumProvider();
+        if (providerObj) {
+            try {
+                liveProvider = new ethers.providers.Web3Provider(providerObj);
+                let accounts = await providerObj.request({ method: 'eth_accounts' });
+                if (!accounts || accounts.length === 0) {
+                    accounts = await providerObj.request({ method: 'eth_requestAccounts' });
+                }
+                if (accounts && accounts.length > 0) {
+                    userWalletAddress = accounts[0];
+                    await syncPlansFromContract();
+                    await fetchRealUsdtBalance();
+                    await fetchFullUserData();
+                    return true;
+                }
+            } catch (e) {}
+        }
+        return false;
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        const savedRefUser = getReferrerUsernameFromUrl();
+        if (savedRefUser) {
+            document.getElementById('regReferrerInput').value = savedRefUser;
+        }
+        forceConnectWallet();
+        drawStaticMatrix();
+    });
+
+    function showAlert(title, message) {
+        document.getElementById('customAlertTitle').innerText = title;
+        document.getElementById('customAlertMessage').innerText = message;
+        document.getElementById('customAlertModal').style.display = 'flex';
+    }
+    function closeCustomAlert() {
+        document.getElementById('customAlertModal').style.display = 'none';
+    }
+
+    // قراءة نسب الخطط الحقيقية من العقد
+    async function syncPlansFromContract() {
+        try {
+            const provider = liveProvider || new ethers.providers.Web3Provider(getEthereumProvider());
+            const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
+            for (let pid = 1; pid <= 4; pid++) {
+                try {
+                    const pInfo = await contract.getPlanInfo(pid);
+                    if (pInfo && pInfo.totalROI) {
+                        // إذا كان العقد يخزن النسبة بالأساس 100 أو 10000 نضبطها تلقائياً
+                        let roiVal = pInfo.totalROI.toNumber();
+                        if (roiVal > 100) roiVal = roiVal / 100;
+                        if (roiVal > 0) {
+                            planRatesMap[pid] = roiVal;
+                            const rateEl = document.getElementById(`planRate${pid}`);
+                            if (rateEl) rateEl.innerText = roiVal + "%";
+                        }
+                    }
+                } catch (e) {}
+            }
+            currentProfitRate = planRatesMap[currentPlanId] || currentProfitRate;
+            calculateReturns();
+        } catch (e) {}
+    }
+
+    function handleInputChange() {
+        const input = document.getElementById('investInput');
+        const badge = document.getElementById('minBadge');
+        const valStr = input.value.trim();
+        if (valStr === "") {
+            badge.style.opacity = "1";
+            badge.innerText = "Min 1 USD";
+            rawNumericValue = 0;
+        } else {
+            let val = parseFloat(valStr);
+            if (!isNaN(val)) {
+                rawNumericValue = val;
+                badge.style.opacity = "0";
+            }
+        }
+        calculateReturns();
+    }
+
+    function setPlan(days, defaultRate, planId, element) {
+        document.querySelectorAll('.plan-item-inline').forEach(el => el.classList.remove('active'));
+        element.classList.add('active');
+        currentDays = days;
+        currentPlanId = planId;
+        currentProfitRate = planRatesMap[planId] || defaultRate;
+        calculateReturns();
+    }
+
+    function calculateReturns() {
+        const val = rawNumericValue || 0;
+        const profit = val * (currentProfitRate / 100);
+        const total = val + profit;
+        document.getElementById('displayRate').innerText = currentProfitRate + '%';
+        document.getElementById('displayProfit').innerText = profit.toFixed(4) + ' USDT';
+        document.getElementById('displayTotal').innerText = total.toFixed(4) + ' USDT';
+    }
+
+    async function applyPercentage(pct) {
+        if (!userWalletAddress) await forceConnectWallet();
+        await fetchRealUsdtBalance();
+        if (userUsdtBalanceValue > 0) {
+            const calculated = (userUsdtBalanceValue * pct) / 100;
+            document.getElementById('investInput').value = calculated.toFixed(2);
+            handleInputChange();
+        }
+    }
+
+    async function applyMaxBalance() {
+        if (!userWalletAddress) await forceConnectWallet();
+        await fetchRealUsdtBalance();
+        if (userUsdtBalanceValue > 0) {
+            const calculated = userUsdtBalanceValue * 0.99;
+            document.getElementById('investInput').value = calculated.toFixed(4);
+            handleInputChange();
+        }
+    }
+
+    async function refreshContractData() {
+        if (!userWalletAddress) {
+            await forceConnectWallet();
+        } else {
+            await fetchRealUsdtBalance();
+            await fetchFullUserData();
+        }
+    }
+
+    async function fetchRealUsdtBalance() {
+        try {
+            if (!userWalletAddress) return;
+            const provider = liveProvider || new ethers.providers.Web3Provider(getEthereumProvider());
+            const usdtContract = new ethers.Contract(USDT_CONTRACT_ADDRESS, [
+                "function balanceOf(address owner) view returns (uint256)",
+                "function decimals() view returns (uint8)"
+            ], provider);
+            const balanceWei = await usdtContract.balanceOf(userWalletAddress);
+            const decimals = await usdtContract.decimals();
+            const formattedBalance = parseFloat(ethers.utils.formatUnits(balanceWei, decimals)).toFixed(2);
+            userUsdtBalanceValue = parseFloat(formattedBalance) || 0;
+            document.getElementById('userUsdtBalance').innerText = formattedBalance;
+        } catch (e) {
+            document.getElementById('userUsdtBalance').innerText = "0.00";
+        }
+    }
+
+    // جلب كافة بيانات المستخدم (التسجيل + الأرباح + الأجيال + الإيداعات)
+    async function fetchFullUserData() {
+        if (!userWalletAddress) return;
+        try {
+            const provider = liveProvider || new ethers.providers.Web3Provider(getEthereumProvider());
+            const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
+
+            // 1. حالة التسجيل والإحصائيات العامة
+            const userInfo = await contract.getUserInfo(userWalletAddress);
+            isUserRegistered = userInfo.registered;
+
+            if (isUserRegistered) {
+                document.getElementById('registerSectionCard').style.display = 'none';
+                document.getElementById('registeredUserBar').style.display = 'flex';
+                document.getElementById('displayUsername').innerText = userInfo.username;
+            } else {
+                document.getElementById('registerSectionCard').style.display = 'flex';
+                document.getElementById('registeredUserBar').style.display = 'none';
+            }
+
+            const totalDep = parseFloat(ethers.utils.formatUnits(userInfo._totalDeposited, 18));
+            const totalWith = parseFloat(ethers.utils.formatUnits(userInfo._totalWithdrawn, 18));
+            document.getElementById('userInvestmentSize').innerText = totalDep.toFixed(2) + " USDT";
+            document.getElementById('userTotalWithdrawn').innerText = totalWith.toFixed(2) + " USDT";
+
+            // 2. الرتبة
+            try {
+                const extraInfo = await contract.getUserInfoExtra(userWalletAddress);
+                document.getElementById('displayUserRank').innerText = extraInfo.rank.toString();
+            } catch (e) {}
+
+            // 3. رصيد الأجيال والأرباح المتاحة للسحب
+            const rewardsData = await contract.getAvailableRewards(userWalletAddress);
+            const networkAvail = parseFloat(ethers.utils.formatUnits(rewardsData.networkAvailable, 18));
+            const totalAvail = parseFloat(ethers.utils.formatUnits(rewardsData.totalAvailable, 18));
+            totalAvailableRewardsNum = totalAvail;
+
+            document.getElementById('networkRewardAvailableVal').innerText = networkAvail.toFixed(4) + " USDT";
+            document.getElementById('totalAvailableVal').innerText = totalAvail.toFixed(4) + " USDT";
+            document.getElementById('generationClaimInput').value = totalAvail > 0 ? totalAvail.toFixed(4) : "";
+
+            // 4. جلب الخطط والإيداعات النشطة عبر getDepositCount و getDepositInfo
+            const countBN = await contract.getDepositCount(userWalletAddress);
+            const count = countBN.toNumber();
+            let loadedOrders = [];
+
+            for (let i = 0; i < count; i++) {
+                const dep = await contract.getDepositInfo(userWalletAddress, i);
+                const amount = parseFloat(ethers.utils.formatUnits(dep.amount, 18));
+                const startTime = dep.startTime.toNumber() * 1000;
+                const endTime = dep.endTime.toNumber() * 1000;
+                const days = Math.round((endTime - startTime) / (1000 * 60 * 60 * 24));
+                const expectedROI = parseFloat(ethers.utils.formatUnits(dep.expectedROI, 18));
+                const generatedROI = parseFloat(ethers.utils.formatUnits(dep.generatedROI, 18));
+
+                loadedOrders.push({
+                    index: i,
+                    amount: amount,
+                    days: days > 0 ? days : currentDays,
+                    startTime: startTime,
+                    endTime: endTime,
+                    claimed: dep.claimed,
+                    isMatured: dep.isMatured,
+                    expectedROI: expectedROI,
+                    generatedROI: generatedROI,
+                    totalReturn: amount + expectedROI
+                });
+            }
+
+            activeOrders = loadedOrders;
+            renderOrdersView();
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    // تسجيل الحساب باليوزرنيم واسم المُحيل
+    async function executeUserRegistration() {
+        if (!userWalletAddress) {
+            await forceConnectWallet();
+        }
+        const username = document.getElementById('regUsernameInput').value.trim();
+        const refUsername = document.getElementById('regReferrerInput').value.trim();
+
+        if (!username) {
+            showAlert("Warning", "Please enter a valid username.");
+            return;
+        }
+        try {
+            const provider = liveProvider || new ethers.providers.Web3Provider(getEthereumProvider());
+            const signer = provider.getSigner();
+            const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+            const tx = await contract.register(username, refUsername);
+            await tx.wait();
+            showAlert("Success", "Registration completed! You can now deposit in any plan.");
+            await fetchFullUserData();
+        } catch (e) {
+            showAlert("Registration Failed", e.reason || e.message || "Error during registration.");
+        }
+    }
+
+    function switchOrdersTab(tabName) {
+        const tabActiveBtn = document.getElementById('tabActiveBtn');
+        const tabPreviousBtn = document.getElementById('tabPreviousBtn');
+        const activeContainer = document.getElementById('activeOrdersContainer');
+        const previousContainer = document.getElementById('previousInvestmentsContainer');
+        const titleElem = document.getElementById('ordersSectionTitle');
+        if (tabName === 'active') {
+            tabActiveBtn.classList.add('active');
+            tabPreviousBtn.classList.remove('active');
+            activeContainer.style.display = 'block';
+            previousContainer.style.display = 'none';
+            titleElem.innerText = 'Current Active Contracts';
+        } else {
+            tabPreviousBtn.classList.add('active');
+            tabActiveBtn.classList.remove('active');
+            activeContainer.style.display = 'none';
+            previousContainer.style.display = 'block';
+            titleElem.innerText = 'Previous Investments';
+        }
+    }
+
+    function renderOrdersView() {
+        const container = document.getElementById('activeOrdersContainer');
+        const now = Date.now();
+
+        container.querySelectorAll('.order-plain-entry').forEach(el => el.remove());
+        let noOrdersMsg = document.getElementById('noActiveOrdersMsg');
+        if (activeOrders.length === 0) {
+            noOrdersMsg.style.display = 'block';
+            return;
+        }
+        noOrdersMsg.style.display = 'none';
+
+        activeOrders.forEach(order => {
+            const isExpired = order.isMatured || (now >= order.endTime);
+            const claimableAmount = order.generatedROI > 0 ? order.generatedROI : order.expectedROI;
+
+            const itemElem = document.createElement('div');
+            itemElem.className = 'order-plain-entry';
+            itemElem.innerHTML = `
+                <div class="order-plain-row">
+                    <span class="order-plain-label">Plan Type:</span>
+                    <span class="order-plain-value">${order.days} Days Plan</span>
+                </div>
+                <div class="order-plain-row">
+                    <span class="order-plain-label">Principal Amount:</span>
+                    <span class="order-plain-value">${order.amount.toFixed(3)} USDT</span>
+                </div>
+                <div class="order-plain-row">
+                    <span class="order-plain-label">Expected Profit:</span>
+                    <span class="order-plain-value" style="color:var(--accent-gold);">${order.expectedROI.toFixed(4)} USDT</span>
+                </div>
+                <div class="order-plain-row">
+                    <span class="order-plain-label">Remaining Duration:</span>
+                    <span class="timer-display-plain" id="timer-${order.index}">00d : 00h : 00m : 00s</span>
+                </div>
+                <div class="progress-container-wrapper">
+                    <div class="progress-info-row">
+                        <span>Generated: <b>${order.generatedROI.toFixed(4)} USDT</b></span>
+                        <span id="progress-text-${order.index}">0%</span>
+                    </div>
+                    <div class="progress-bar-track">
+                        <div class="progress-bar-fill" id="progress-fill-${order.index}" style="width: 0%;"></div>
+                    </div>
+                </div>
+                ${!order.claimed ? `
+                    <button class="btn-claim-dynamic ${isExpired || order.generatedROI > 0 ? 'active-claim' : 'disabled-claim'}" id="claim-btn-${order.index}" onclick="executePlanClaim(${claimableAmount})">
+                        Claim Profits (${claimableAmount.toFixed(4)} USDT)
+                    </button>
+                ` : `
+                    <div style="text-align:center; color:var(--success-color); font-size:12px; font-weight:bold; margin-top:8px; background:rgba(0,255,204,0.1); padding:8px; border-radius:8px;">Claimed Successfully</div>
+                `}
+            `;
+            container.appendChild(itemElem);
+
+            if (!order.claimed && now < order.endTime) {
+                runCountdown(order.index, order.startTime, order.endTime);
+            } else {
+                const timerElem = document.getElementById(`timer-${order.index}`);
+                const fillElem = document.getElementById(`progress-fill-${order.index}`);
+                const textElem = document.getElementById(`progress-text-${order.index}`);
+                if (timerElem) timerElem.innerText = order.claimed ? "Completed & Claimed" : "Matured - Ready";
+                if (fillElem) fillElem.style.width = '100%';
+                if (textElem) textElem.innerText = 'Completed (100%)';
+            }
+        });
+    }
+
+    function runCountdown(orderIdx, startTime, endTime) {
+        const timerElem = document.getElementById(`timer-${orderIdx}`);
+        const claimBtnElem = document.getElementById(`claim-btn-${orderIdx}`);
+        const fillElem = document.getElementById(`progress-fill-${orderIdx}`);
+        const textElem = document.getElementById(`progress-text-${orderIdx}`);
+        const totalDuration = endTime - startTime;
+
+        const interval = setInterval(() => {
+            const now = Date.now();
+            const elapsed = now - startTime;
+            const remaining = endTime - now;
+            let percentage = totalDuration > 0 ? (elapsed / totalDuration) * 100 : 100;
+            if (percentage > 100) percentage = 100;
+
+            if (fillElem) fillElem.style.width = percentage.toFixed(1) + '%';
+            if (textElem) textElem.innerText = percentage >= 100 ? 'Completed (100%)' : `Progress: ${percentage.toFixed(1)}%`;
+
+            if (remaining <= 0) {
+                if (timerElem) timerElem.innerText = "Matured - Ready";
+                if (claimBtnElem) {
+                    claimBtnElem.classList.remove('disabled-claim');
+                    claimBtnElem.classList.add('active-claim');
+                }
+                clearInterval(interval);
+                return;
+            }
+            const d = Math.floor(remaining / (1000 * 60 * 60 * 24));
+            const h = Math.floor((remaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const m = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+            const s = Math.floor((remaining % (1000 * 60)) / 1000);
+            if (timerElem) {
+                timerElem.innerText = `${String(d).padStart(2,'0')}d : ${String(h).padStart(2,'0')}h : ${String(m).padStart(2,'0')}m : ${String(s).padStart(2,'0')}s`;
+            }
+        }, 1000);
+    }
+
+    // دالة الإيداع الجديدة: deposit(amount, planId) بدون تمرير عنوان
+    async function handleInvestButtonClick() {
+        if (!userWalletAddress) {
+            await forceConnectWallet();
+        }
+        if (!isUserRegistered) {
+            document.getElementById('registerSectionCard').style.display = 'flex';
+            showAlert("Registration Required", "Please register your username first before making a deposit.");
+            return;
+        }
+        if (rawNumericValue < 1) {
+            showAlert("Warning", "Minimum investment amount is 1 USDT.");
+            return;
+        }
+        try {
+            const provider = liveProvider || new ethers.providers.Web3Provider(getEthereumProvider());
+            const signer = provider.getSigner();
+            const amountWei = ethers.utils.parseUnits(rawNumericValue.toString(), 18);
+
+            const usdtContract = new ethers.Contract(USDT_CONTRACT_ADDRESS, [
+                "function approve(address spender, uint256 amount) external returns (bool)",
+                "function allowance(address owner, address spender) external view returns (uint256)"
+            ], signer);
+
+            const allowance = await usdtContract.allowance(userWalletAddress, CONTRACT_ADDRESS);
+            if (allowance.lt(amountWei)) {
+                const approveTx = await usdtContract.approve(CONTRACT_ADDRESS, amountWei);
+                await approveTx.wait();
+            }
+
+            const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+            const tx = await contract.deposit(amountWei, currentPlanId);
+            await tx.wait();
+            showAlert("Success", "Deposit confirmed on blockchain!");
+            await refreshContractData();
+        } catch (e) {
+            showAlert("Deposit Failed", e.reason || e.message || "Transaction failed.");
+        }
+    }
+
+    // المطالبة بأرباح الخطة عبر claimRewards(amount)
+    async function executePlanClaim(amountToClaim) {
+        const val = amountToClaim > 0 ? amountToClaim : totalAvailableRewardsNum;
+        if (val <= 0) {
+            showAlert("Notice", "No generated rewards available to claim yet.");
+            return;
+        }
+        try {
+            const provider = liveProvider || new ethers.providers.Web3Provider(getEthereumProvider());
+            const signer = provider.getSigner();
+            const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+            const amountWei = ethers.utils.parseUnits(val.toString(), 18);
+            const tx = await contract.claimRewards(amountWei);
+            await tx.wait();
+            showAlert("Success", "Profits claimed successfully to your wallet!");
+            await refreshContractData();
+        } catch (e) {
+            showAlert("Claim Failed", e.reason || e.message || "Transaction failed.");
+        }
+    }
+
+    // المطالبة بأرباح الأجيال والشبكة عبر المبلغ المدخل في الحقل
+    async function handleClaimGenerationRewards() {
+        const inputVal = parseFloat(document.getElementById('generationClaimInput').value);
+        if (isNaN(inputVal) || inputVal <= 0) {
+            showAlert("Warning", "Please enter a valid amount to claim.");
+            return;
+        }
+        try {
+            const provider = liveProvider || new ethers.providers.Web3Provider(getEthereumProvider());
+            const signer = provider.getSigner();
+            const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+            const amountWei = ethers.utils.parseUnits(inputVal.toString(), 18);
+            const tx = await contract.claimRewards(amountWei);
+            await tx.wait();
+            showAlert("Success", "Rewards claimed successfully to your wallet!");
+            await refreshContractData();
+        } catch (e) {
+            showAlert("Claim Failed", e.reason || e.message || "Transaction failed.");
+        }
+    }
+</script>
+</body>
+</html>
